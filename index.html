@@ -24,20 +24,31 @@
 		<div id="map"></div>
 		
 		<script src="bower_components/topojson/topojson.js"></script>
-		<script src="http://code.jquery.com/jquery-2.1.0.min.js"></script>
+		<script src="bower_components/d3/d3.min.js"></script>
+		<script src="bower_components/queue-async/queue.min.js"></script>
 		<script src='https://api.tiles.mapbox.com/mapbox.js/v1.6.2/mapbox.js'></script>
 		<script src='//api.tiles.mapbox.com/mapbox.js/plugins/leaflet-hash/v0.2.1/leaflet-hash.js'></script>
 
 		<script>
 		var map = L.mapbox.map('map', 'examples.map-9ijuk24y').setView([42.235, -71.455], 8);
 
-		$.getJSON('data/districts.json', function(data) {
+		map.hash = L.hash(map);
+
+		queue()
+			.defer(d3.json, 'data/districts.json')
+			.defer(d3.csv, 'data/districts.csv')
+			.await(ready);
+
+		function ready(err, bounds, data) {
 			var districts = window.districts = {
-				elementary: topojson.feature(data, data.objects.elementary),
-				middle: topojson.feature(data, data.objects.middle),
-				high: topojson.feature(data, data.objects.high)
+				elementary: topojson.feature(bounds, bounds.objects.elementary),
+				middle: topojson.feature(bounds, bounds.objects.middle),
+				high: topojson.feature(bounds, bounds.objects.high)
 			};
 
+			// build an index of id => datum for district data
+
+			// fill in districts where we have budgets
 			map.districts = L.geoJson(districts.elementary, {
 				style: function(feature) {
 					return {
@@ -46,9 +57,7 @@
 				}
 			}).addTo(map);
 
-			map.hash = L.hash(map);
-
-		});
+		}
 
 		</script>
 	</body>
