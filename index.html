@@ -23,6 +23,7 @@
 	<body>
 		<div id="map"></div>
 		
+		<script src="bower_components/underscore/underscore.js"></script>
 		<script src="bower_components/topojson/topojson.js"></script>
 		<script src="bower_components/d3/d3.min.js"></script>
 		<script src="bower_components/queue-async/queue.min.js"></script>
@@ -47,17 +48,35 @@
 			};
 
 			// build an index of id => datum for district data
+			data = window.data = _(data).chain().map(function(d) {
+				d.id = d['Org Code'];
+				d.Budget = (d.Budget === 'yes');
+
+				return [d.id, d];
+			}).object().value();
 
 			// fill in districts where we have budgets
 			map.districts = L.geoJson(districts.elementary, {
 				style: function(feature) {
 					return {
-						weight: 1
+						weight: 1,
+						fillOpacity: opacity(feature)
 					};
 				}
 			}).addTo(map);
 
+			function opacity(feature) {
+				var d = data[+feature.properties.DISTCODE8];
+
+				if (d && d.Budget) {
+					return 0.75;
+				} else {
+					return 0.1;
+				}
+			}
+
 		}
+
 
 		</script>
 	</body>
